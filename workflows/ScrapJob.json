@@ -1,0 +1,1432 @@
+{
+  "name": "ScrapJob",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        64
+      ],
+      "id": "956354c7-7e1b-4811-ace7-450227630183",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://jsearch.p.rapidapi.com/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "jobs in India"
+            },
+            {
+              "name": "country",
+              "value": "India"
+            },
+            {
+              "name": "page",
+              "value": "9"
+            },
+            {
+              "name": "num_pages",
+              "value": "9"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-RapidAPI-Host",
+              "value": "jsearch.p.rapidapi.com"
+            },
+            {
+              "name": "X-RapidAPI-Key",
+              "value": "Rapid-AP-KEYI"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        272,
+        240
+      ],
+      "id": "84041400-6a28-42b9-b138-27e2b814e7ee",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/valig~linkedin-jobs-scraper/run-sync-get-dataset-items?token=apify_api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"startUrls\": [\n    { \"url\": \"https://example.com/jobs\" }\n  ],\n  \"location\" : \"India\",\n  \"maxRequestsPerCrawl\": 10\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        272,
+        -320
+      ],
+      "id": "9dc7f72c-d562-4192-b19a-e3deabb5e0f8",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "url": "https://internshala.com/internships/web-development-internship",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        272,
+        -128
+      ],
+      "id": "9c762ac1-5c57-4d0a-bc80-4d4301353cf2",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "url": "https://serpapi.com/search.json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "api-key-value"
+            },
+            {
+              "name": "q",
+              "value": "remote jobs in india"
+            },
+            {
+              "name": "location",
+              "value": "india"
+            },
+            {
+              "name": "engine",
+              "value": "google_jobs"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        272,
+        432
+      ],
+      "id": "cdcad974-212d-4502-a77c-42094e36ccc0",
+      "name": "HTTP Request3",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "command": "python3 /data/scripts/remoteok_fetch.py"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        272,
+        64
+      ],
+      "id": "c7508074-4728-4d3e-a253-af0d71636769",
+      "name": "Execute Command"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "title",
+              "cssSelector": ".internship_meta .profile",
+              "returnArray": true
+            },
+            {
+              "key": "company",
+              "cssSelector": ".company_name a",
+              "returnArray": true
+            },
+            {
+              "key": "location",
+              "cssSelector": ".location_link",
+              "returnArray": true
+            },
+            {
+              "key": "link",
+              "cssSelector": ".view_detail_button",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        -128
+      ],
+      "id": "9966abc3-9991-4e69-aef7-73fc89818486",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  return {\n    json: {\n      actualLink: item.json.link,\n      type: typeof item.json.link,\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        656,
+        -128
+      ],
+      "id": "82c6bb93-b424-457f-b695-173118345e4f",
+      "name": "Code",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "return items[0].json.actualLink.map(raw => {\n  if (typeof raw !== 'string') raw = String(raw);\n\n  const lines = raw\n    .split('\\n')\n    .map(l => l.trim())\n    .filter(Boolean);\n\n  const title = lines[0] || \"\";\n\n  // Try matching direct link (like https://internshala.com/...)\n  let applyLink = \"\";\n  const directLinkMatch = lines[1]?.match(/https:\\/\\/internshala\\.com\\/[^\\s]+/);\n  if (directLinkMatch) {\n    applyLink = directLinkMatch[0];\n  } else {\n    // Else, try extracting from relative [href] link\n    const relativeLinkMatch = lines[1]?.match(/\\[([^\\]]+)\\]/);\n    if (relativeLinkMatch) {\n      applyLink = `https://internshala.com${relativeLinkMatch[1]}`;\n    }\n  }\n\n  const companyName = lines[2] || \"\";\n\n  // Extract location (skip logos, actively hiring, etc.)\n  let location = \"\";\n  for (let i = 3; i < lines.length; i++) {\n    const line = lines[i];\n    if (\n      !line.toLowerCase().includes(\"actively hiring\") &&\n      !line.includes(\"/static/images/\") &&\n      !line.includes(\"placeholder_logo\") &&\n      !line.toLowerCase().includes(\"₹\") &&\n      !line.toLowerCase().includes(\"month\")\n    ) {\n      location = line;\n      break;\n    }\n  }\n\n  // Extract stipend and duration separately\n  let stipend = \"\";\n  let duration = \"\";\n  for (const line of lines) {\n    if (!stipend && line.includes('₹')) {\n      stipend = line;\n    } else if (!duration && line.toLowerCase().includes('month')) {\n      duration = line;\n    }\n  }\n\n  return {\n    json: {\n      title,\n      applyLink,\n      companyName,\n      location,\n      stipend,\n      duration\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        -128
+      ],
+      "id": "a5f6fccb-8e28-4e21-b516-8f5b20645293",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const jobs = item.json.jobs_results || [];\n\n  return jobs.map(job => {\n    return {\n      json: {\n        title: job.title || \"\",\n        company_name: job.company_name || \"\",\n        role: job.title || \"\",\n        apply_url: job.apply_link || job.link || \"\",\n        posted_date: job.detected_extensions?.posted_at || job.extensions?.[0] || \"\",\n        description: job.description || \"\",\n        schedule_type: job.detected_extensions?.schedule_type || job.schedule_type || \"\",\n        location: job.location || \"\",\n        source: \"SerpAPI\"\n      }\n    };\n  });\n}).flat();\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        432
+      ],
+      "id": "c15a15f0-d953-47b2-a27f-d6b695ebb164",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "numberInputs": 5
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1968,
+        -80
+      ],
+      "id": "266a5159-bc37-4997-bf20-f8a0cc695f70",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Step 1: Get the stdout string\nconst rawOutput = $json[\"stdout\"];\n\n// Step 2: Try to extract only the first valid JSON array/object\nlet jsonStart = rawOutput.indexOf('[');\nlet jsonEnd = rawOutput.lastIndexOf(']') + 1;\n\n// Fallback to object if it's not an array\nif (jsonStart === -1 || jsonEnd === 0) {\n  jsonStart = rawOutput.indexOf('{');\n  jsonEnd = rawOutput.lastIndexOf('}') + 1;\n}\n\nif (jsonStart === -1 || jsonEnd === 0) {\n  throw new Error(\"Could not locate valid JSON block in stdout\");\n}\n\nconst jsonString = rawOutput.slice(jsonStart, jsonEnd);\n\nlet parsed;\ntry {\n  parsed = JSON.parse(jsonString);\n} catch (err) {\n  throw new Error(\"Still failed to parse cleaned stdout JSON: \" + err.message);\n}\n\n// Return array of items\nif (Array.isArray(parsed)) {\n  return parsed.map(item => ({ json: item }));\n} else {\n  return [{ json: parsed }];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        64
+      ],
+      "id": "5566b750-0a89-488b-86fe-13fd63ec169c",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "jsCode": "let allJobs = [];\n\nitems.forEach((item, index) => {\n  const dataArray = item.json.data;\n\n  if (Array.isArray(dataArray)) {\n    dataArray.forEach((job, jobIndex) => {\n      allJobs.push({ json: job });\n    });\n  } else {\n    allJobs.push({\n      json: {\n        error: `Item ${index} has no valid array in 'data'`,\n        original: item.json\n      }\n    });\n  }\n});\n\nreturn allJobs;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        240
+      ],
+      "id": "43861280-b0a4-4907-a28e-02d633f998ba",
+      "name": "Code4",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "function isValidString(value) {\n  const invalidValues = ['unknown', 'n/a', 'null', 'none', 'undefined', '=unknown'];\n  return typeof value === 'string' &&\n    value.trim() !== '' &&\n    !invalidValues.includes(value.trim().toLowerCase());\n}\n\nreturn items.map(item => {\n  const input = item.json;\n  const fields = {};\n\n  for (const key in input) {\n    const value = input[key];\n\n    if (key === 'timestamp' && isValidString(value)) {\n      // Ensure timestamp ends with Z\n      const iso = value.endsWith('Z') ? value : new Date(value).toISOString();\n      fields[key] = { timestampValue: iso };\n    } else if (isValidString(value)) {\n      fields[key] = { stringValue: value };\n    }\n  }\n\n  return {\n    json: { fields }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        -320
+      ],
+      "id": "5e2d266e-d8d5-4036-8ff5-7a2e821e9124",
+      "name": "Code6"
+    },
+    {
+      "parameters": {
+        "jsCode": "function isValidString(value) {\n  const invalidValues = ['unknown', 'n/a', 'null', 'none', 'undefined', '=unknown'];\n  return typeof value === 'string' &&\n    value.trim() !== '' &&\n    !invalidValues.includes(value.trim().toLowerCase());\n}\n\nreturn items.map(item => {\n  const input = item.json;\n  const fields = {};\n\n  for (const key in input) {\n    const value = input[key];\n\n    if (key === 'timestamp' && isValidString(value)) {\n      // Ensure timestamp ends with Z\n      const iso = value.endsWith('Z') ? value : new Date(value).toISOString();\n      fields[key] = { timestampValue: iso };\n    } else if (isValidString(value)) {\n      fields[key] = { stringValue: value };\n    }\n  }\n\n  return {\n    json: { fields }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1072,
+        -128
+      ],
+      "id": "022478f4-fa4f-4754-a796-06576cfe50eb",
+      "name": "Code9"
+    },
+    {
+      "parameters": {
+        "jsCode": "function isValidString(value) {\n  const invalidValues = ['unknown', 'n/a', 'null', 'none', 'undefined', '=unknown'];\n  return typeof value === 'string' &&\n    value.trim() !== '' &&\n    !invalidValues.includes(value.trim().toLowerCase());\n}\n\nreturn items.map(item => {\n  const input = item.json;\n  const fields = {};\n\n  for (const key in input) {\n    const value = input[key];\n\n    if (key === 'timestamp' && isValidString(value)) {\n      // Ensure timestamp ends with Z\n      const iso = value.endsWith('Z') ? value : new Date(value).toISOString();\n      fields[key] = { timestampValue: iso };\n    } else if (isValidString(value)) {\n      fields[key] = { stringValue: value };\n    }\n  }\n\n  return {\n    json: { fields }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        64
+      ],
+      "id": "dd2aeb42-4abf-42a8-9860-64af2f5691f9",
+      "name": "Code10"
+    },
+    {
+      "parameters": {
+        "jsCode": "function isValidString(value) {\n  const invalidValues = ['unknown', 'n/a', 'null', 'none', 'undefined', '=unknown'];\n  return typeof value === 'string' &&\n    value.trim() !== '' &&\n    !invalidValues.includes(value.trim().toLowerCase());\n}\n\nreturn items.map(item => {\n  const input = item.json;\n  const fields = {};\n\n  for (const key in input) {\n    const value = input[key];\n\n    if (key === 'timestamp' && isValidString(value)) {\n      // Ensure timestamp ends with Z\n      const iso = value.endsWith('Z') ? value : new Date(value).toISOString();\n      fields[key] = { timestampValue: iso };\n    } else if (isValidString(value)) {\n      fields[key] = { stringValue: value };\n    }\n  }\n\n  return {\n    json: { fields }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        240
+      ],
+      "id": "91a73536-a3c4-42f8-a4e8-231faf2cdc42",
+      "name": "Code11"
+    },
+    {
+      "parameters": {
+        "jsCode": "function isValidString(value) {\n  const invalidValues = ['unknown', 'n/a', 'null', 'none', 'undefined', '=unknown'];\n  return typeof value === 'string' &&\n    value.trim() !== '' &&\n    !invalidValues.includes(value.trim().toLowerCase());\n}\n\nreturn items.map(item => {\n  const input = item.json;\n  const fields = {};\n\n  for (const key in input) {\n    const value = input[key];\n\n    if (key === 'timestamp' && isValidString(value)) {\n      // Ensure timestamp ends with Z\n      const iso = value.endsWith('Z') ? value : new Date(value).toISOString();\n      fields[key] = { timestampValue: iso };\n    } else if (isValidString(value)) {\n      fields[key] = { stringValue: value };\n    }\n  }\n\n  return {\n    json: { fields }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        432
+      ],
+      "id": "7e8ec20b-0b0a-451a-a7e6-65721e535613",
+      "name": "Code7"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1f0cb544-d8ef-4fab-a393-57388383e0f3",
+              "name": "Title",
+              "value": "={{ $json.fields.title }}",
+              "type": "string"
+            },
+            {
+              "id": "0c61b64a-2638-4b09-bdd1-3881e4d9b07e",
+              "name": "Company",
+              "value": "={{ $json.fields.companyName }}",
+              "type": "string"
+            },
+            {
+              "id": "0ad6285a-5e95-4022-b0dd-78d9157f4dd6",
+              "name": "Location",
+              "value": "={{ $json.fields.location }}",
+              "type": "string"
+            },
+            {
+              "id": "4f3bb608-a4e3-487d-82f1-8d33df6c9965",
+              "name": "Apply URL",
+              "value": "={{ $json.fields.url.stringValue }}{{ $json.fields.applyUrl }}",
+              "type": "string"
+            },
+            {
+              "id": "1dbb9f02-4101-4c04-8e40-2e97edd22c7c",
+              "name": "Experience",
+              "value": "={{ $json.fields.experienceLevel }}",
+              "type": "string"
+            },
+            {
+              "id": "55c4e484-a4c7-4d71-804c-e22e4dbf53c9",
+              "name": "Salary",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "77212a82-040e-439b-b575-d282b781dd2d",
+              "name": "Company URL",
+              "value": "={{ $json.fields.companyUrl }}",
+              "type": "string"
+            },
+            {
+              "id": "0b7b22eb-05d0-4b39-94c5-9362e46b3f03",
+              "name": "Posted Date",
+              "value": "={{ $json.fields.postedDate }}",
+              "type": "string"
+            },
+            {
+              "id": "5dfbde81-224d-486a-905c-cf2020ee2278",
+              "name": "description",
+              "value": "={{ $json.fields.description }}",
+              "type": "string"
+            },
+            {
+              "id": "fbb433a7-fc32-4f61-891b-418bf45443f0",
+              "name": "Work Type",
+              "value": "={{ $json.fields.workType }}",
+              "type": "string"
+            },
+            {
+              "id": "3e01ed3d-c5eb-4eb8-8350-8dc44c696f33",
+              "name": "Apply Type",
+              "value": "={{ $json.fields.applyType }}",
+              "type": "string"
+            },
+            {
+              "id": "27cb3acb-ace5-4cc9-9fce-dfb7a8552901",
+              "name": "Contract Type",
+              "value": "={{ $json.fields.contractType }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        736,
+        -320
+      ],
+      "id": "c9440363-c162-496d-bcf6-18c1d6a6a617",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1f0cb544-d8ef-4fab-a393-57388383e0f3",
+              "name": "Title",
+              "value": "={{ $json.fields.title }}",
+              "type": "string"
+            },
+            {
+              "id": "0c61b64a-2638-4b09-bdd1-3881e4d9b07e",
+              "name": "Company",
+              "value": "={{ $json.fields.companyName }}",
+              "type": "string"
+            },
+            {
+              "id": "0ad6285a-5e95-4022-b0dd-78d9157f4dd6",
+              "name": "Location",
+              "value": "={{ $json.fields.location }}",
+              "type": "string"
+            },
+            {
+              "id": "4f3bb608-a4e3-487d-82f1-8d33df6c9965",
+              "name": "Apply URL",
+              "value": "={{ $json.fields.applyLink }}",
+              "type": "string"
+            },
+            {
+              "id": "1dbb9f02-4101-4c04-8e40-2e97edd22c7c",
+              "name": "Experience",
+              "value": "={{ $json.fields.experienceLevel }}",
+              "type": "string"
+            },
+            {
+              "id": "55c4e484-a4c7-4d71-804c-e22e4dbf53c9",
+              "name": "Salary",
+              "value": "={{ $json.fields.stipend }}",
+              "type": "string"
+            },
+            {
+              "id": "77212a82-040e-439b-b575-d282b781dd2d",
+              "name": "Company URL",
+              "value": "={{ $json.fields.companyUrl }}",
+              "type": "string"
+            },
+            {
+              "id": "0b7b22eb-05d0-4b39-94c5-9362e46b3f03",
+              "name": "Posted Date",
+              "value": "={{ $json.fields.postedDate }}",
+              "type": "string"
+            },
+            {
+              "id": "5dfbde81-224d-486a-905c-cf2020ee2278",
+              "name": "description",
+              "value": "={{ $json.fields.description }}",
+              "type": "string"
+            },
+            {
+              "id": "fbb433a7-fc32-4f61-891b-418bf45443f0",
+              "name": "Work Type",
+              "value": "={{ $json.fields.workType }}",
+              "type": "string"
+            },
+            {
+              "id": "3e01ed3d-c5eb-4eb8-8350-8dc44c696f33",
+              "name": "Apply Type",
+              "value": "={{ $json.fields.applyType }}",
+              "type": "string"
+            },
+            {
+              "id": "27cb3acb-ace5-4cc9-9fce-dfb7a8552901",
+              "name": "Contract Type",
+              "value": "={{ $json.fields.contractType }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1264,
+        -128
+      ],
+      "id": "e522f10d-35e2-447e-ae80-79dd10482493",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1f0cb544-d8ef-4fab-a393-57388383e0f3",
+              "name": "Title",
+              "value": "={{ $json.fields.Title }}",
+              "type": "string"
+            },
+            {
+              "id": "0c61b64a-2638-4b09-bdd1-3881e4d9b07e",
+              "name": "Company",
+              "value": "={{ $json.fields.Company }}",
+              "type": "string"
+            },
+            {
+              "id": "0ad6285a-5e95-4022-b0dd-78d9157f4dd6",
+              "name": "Location",
+              "value": "={{ $json.fields.Location }}",
+              "type": "string"
+            },
+            {
+              "id": "4f3bb608-a4e3-487d-82f1-8d33df6c9965",
+              "name": "Apply URL",
+              "value": "={{ $json.fields['Apply URL'] }}",
+              "type": "string"
+            },
+            {
+              "id": "1dbb9f02-4101-4c04-8e40-2e97edd22c7c",
+              "name": "Experience",
+              "value": "={{ $json.fields['Experience Level'] }}",
+              "type": "string"
+            },
+            {
+              "id": "55c4e484-a4c7-4d71-804c-e22e4dbf53c9",
+              "name": "Salary",
+              "value": "={{ $json.fields.Salary }}",
+              "type": "string"
+            },
+            {
+              "id": "77212a82-040e-439b-b575-d282b781dd2d",
+              "name": "Company URL",
+              "value": "={{ $json.fields['Company URL'].stringValue }}",
+              "type": "string"
+            },
+            {
+              "id": "0b7b22eb-05d0-4b39-94c5-9362e46b3f03",
+              "name": "Posted Date",
+              "value": "={{ $json.fields['Posted Date'] }}",
+              "type": "string"
+            },
+            {
+              "id": "5dfbde81-224d-486a-905c-cf2020ee2278",
+              "name": "description",
+              "value": "={{ $json.fields.description }}",
+              "type": "string"
+            },
+            {
+              "id": "fbb433a7-fc32-4f61-891b-418bf45443f0",
+              "name": "Work Type",
+              "value": "={{ $json.fields['Work Type'] }}",
+              "type": "string"
+            },
+            {
+              "id": "3e01ed3d-c5eb-4eb8-8350-8dc44c696f33",
+              "name": "Apply Type",
+              "value": "={{ $json.fields['Apply Type'] }}",
+              "type": "string"
+            },
+            {
+              "id": "27cb3acb-ace5-4cc9-9fce-dfb7a8552901",
+              "name": "Contract Type",
+              "value": "={{ $json.fields['Contract Type'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        64
+      ],
+      "id": "3372ac47-430c-4d5c-be61-3f597165d6df",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1f0cb544-d8ef-4fab-a393-57388383e0f3",
+              "name": "Title",
+              "value": "={{ $json.fields.job_title }}",
+              "type": "string"
+            },
+            {
+              "id": "0c61b64a-2638-4b09-bdd1-3881e4d9b07e",
+              "name": "Company",
+              "value": "={{ $json.fields.employer_name }}",
+              "type": "string"
+            },
+            {
+              "id": "0ad6285a-5e95-4022-b0dd-78d9157f4dd6",
+              "name": "Location",
+              "value": "={{ $json.fields.job_location }}",
+              "type": "string"
+            },
+            {
+              "id": "4f3bb608-a4e3-487d-82f1-8d33df6c9965",
+              "name": "Apply URL",
+              "value": "={{ $json.fields.job_apply_link }}",
+              "type": "string"
+            },
+            {
+              "id": "1dbb9f02-4101-4c04-8e40-2e97edd22c7c",
+              "name": "Experience",
+              "value": "={{ $json.fields.experienceLevel }}",
+              "type": "string"
+            },
+            {
+              "id": "55c4e484-a4c7-4d71-804c-e22e4dbf53c9",
+              "name": "Salary",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "77212a82-040e-439b-b575-d282b781dd2d",
+              "name": "Company URL",
+              "value": "={{ $json.fields.employer_website }}",
+              "type": "string"
+            },
+            {
+              "id": "0b7b22eb-05d0-4b39-94c5-9362e46b3f03",
+              "name": "Posted Date",
+              "value": "={{ $json.fields.postedDate }}",
+              "type": "string"
+            },
+            {
+              "id": "5dfbde81-224d-486a-905c-cf2020ee2278",
+              "name": "description",
+              "value": "={{ $json.fields.job_description }}",
+              "type": "string"
+            },
+            {
+              "id": "fbb433a7-fc32-4f61-891b-418bf45443f0",
+              "name": "Work Type",
+              "value": "={{ $json.fields.workType }}",
+              "type": "string"
+            },
+            {
+              "id": "3e01ed3d-c5eb-4eb8-8350-8dc44c696f33",
+              "name": "Apply Type",
+              "value": "={{ $json.fields.applyType }}",
+              "type": "string"
+            },
+            {
+              "id": "27cb3acb-ace5-4cc9-9fce-dfb7a8552901",
+              "name": "Contract Type",
+              "value": "={{ $json.fields.job_employment_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        864,
+        240
+      ],
+      "id": "370f4df8-a36a-4ac4-9c47-fa8f4f76f18c",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1f0cb544-d8ef-4fab-a393-57388383e0f3",
+              "name": "Title",
+              "value": "={{ $json.fields.title }}",
+              "type": "string"
+            },
+            {
+              "id": "0c61b64a-2638-4b09-bdd1-3881e4d9b07e",
+              "name": "Company",
+              "value": "={{ $json.fields.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "0ad6285a-5e95-4022-b0dd-78d9157f4dd6",
+              "name": "Location",
+              "value": "={{ $json.fields.location }}",
+              "type": "string"
+            },
+            {
+              "id": "4f3bb608-a4e3-487d-82f1-8d33df6c9965",
+              "name": "Apply URL",
+              "value": "={{ $json.fields.url.stringValue }}{{ $json.fields.applyUrl }}",
+              "type": "string"
+            },
+            {
+              "id": "1dbb9f02-4101-4c04-8e40-2e97edd22c7c",
+              "name": "Experience",
+              "value": "={{ $json.fields.experienceLevel }}",
+              "type": "string"
+            },
+            {
+              "id": "55c4e484-a4c7-4d71-804c-e22e4dbf53c9",
+              "name": "Salary",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "77212a82-040e-439b-b575-d282b781dd2d",
+              "name": "Company URL",
+              "value": "={{ $json.fields.companyUrl }}",
+              "type": "string"
+            },
+            {
+              "id": "0b7b22eb-05d0-4b39-94c5-9362e46b3f03",
+              "name": "Posted Date",
+              "value": "={{ $json.fields.posted_date }}",
+              "type": "string"
+            },
+            {
+              "id": "5dfbde81-224d-486a-905c-cf2020ee2278",
+              "name": "description",
+              "value": "={{ $json.fields.description }}",
+              "type": "string"
+            },
+            {
+              "id": "fbb433a7-fc32-4f61-891b-418bf45443f0",
+              "name": "Work Type",
+              "value": "={{ $json.fields.workType }}",
+              "type": "string"
+            },
+            {
+              "id": "3e01ed3d-c5eb-4eb8-8350-8dc44c696f33",
+              "name": "Apply Type",
+              "value": "={{ $json.fields.source }}",
+              "type": "string"
+            },
+            {
+              "id": "27cb3acb-ace5-4cc9-9fce-dfb7a8552901",
+              "name": "Contract Type",
+              "value": "={{ $json.fields.schedule_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        432
+      ],
+      "id": "733708c7-66e4-4670-b8e0-0bc82ba997cb",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const cleaned = {};\n  for (const key in item.json) {\n    let value = item.json[key];\n    \n    if (typeof value === 'string') {\n      try {\n        const parsed = JSON.parse(value);\n        value = parsed.stringValue || '';\n      } catch {\n        value = value;\n      }\n    }\n\n    if (value === null || value === undefined) {\n      value = '';\n    }\n\n    cleaned[key] = value;\n  }\n\n  return { json: cleaned };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        -320
+      ],
+      "id": "c789f768-ceea-4b8c-b7ef-6c1c7cafd945",
+      "name": "Code8"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const cleaned = {};\n  for (const key in item.json) {\n    let value = item.json[key];\n    \n    if (typeof value === 'string') {\n      try {\n        const parsed = JSON.parse(value);\n        value = parsed.stringValue || '';\n      } catch {\n        value = value;\n      }\n    }\n\n    if (value === null || value === undefined) {\n      value = '';\n    }\n\n    cleaned[key] = value;\n  }\n\n  return { json: cleaned };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        -128
+      ],
+      "id": "887f1055-665f-4652-b79b-e8dc27c73616",
+      "name": "Code12"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const cleaned = {};\n  for (const key in item.json) {\n    let value = item.json[key];\n    \n    if (typeof value === 'string') {\n      try {\n        const parsed = JSON.parse(value);\n        value = parsed.stringValue || '';\n      } catch {\n        value = value;\n      }\n    }\n\n    if (value === null || value === undefined) {\n      value = '';\n    }\n\n    cleaned[key] = value;\n  }\n\n  return { json: cleaned };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        64
+      ],
+      "id": "20bd132d-2a39-4678-ad8a-7c0234beb46e",
+      "name": "Code13"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const cleaned = {};\n  for (const key in item.json) {\n    let value = item.json[key];\n    \n    if (typeof value === 'string') {\n      try {\n        const parsed = JSON.parse(value);\n        value = parsed.stringValue || '';\n      } catch {\n        value = value;\n      }\n    }\n\n    if (value === null || value === undefined) {\n      value = '';\n    }\n\n    cleaned[key] = value;\n  }\n\n  return { json: cleaned };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1072,
+        240
+      ],
+      "id": "6d672cdb-eb5a-48b3-b727-820e0cba74f9",
+      "name": "Code14"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const cleaned = {};\n  for (const key in item.json) {\n    let value = item.json[key];\n    \n    if (typeof value === 'string') {\n      try {\n        const parsed = JSON.parse(value);\n        value = parsed.stringValue || '';\n      } catch {\n        value = value;\n      }\n    }\n\n    if (value === null || value === undefined) {\n      value = '';\n    }\n\n    cleaned[key] = value;\n  }\n\n  return { json: cleaned };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        432
+      ],
+      "id": "debe0876-f243-4344-a046-83b99a0128d3",
+      "name": "Code15"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2304,
+        -96
+      ],
+      "id": "e53c0466-94c7-4d80-b062-8605d450a828",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Replace Me",
+      "typeVersion": 1,
+      "position": [
+        2464,
+        16
+      ],
+      "id": "4d806954-b108-4e15-85b7-41cf6108b4a5"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "address",
+          "mode": "list",
+          "cachedResultName": "job_scraper_data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/address"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/address"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Title": "={{ $json.Title }}",
+            "Company": "={{ $json.Company }}",
+            "Location": "={{ $json.Location }}",
+            "Experience": "={{ $json.Experience }}",
+            "Salary": "={{ $json.Salary }}",
+            "Company URL": "={{ $json['Company URL'] }}",
+            "Apply URL": "={{ $json['Apply URL'] }}",
+            "Posted Date": "={{ $json['Posted Date'] }}",
+            "description": "={{ $json.description }}",
+            "Contract Type": "={{ $json['Contract Type'] }}",
+            "Work Type": "={{ $json['Work Type'] }}",
+            "Apply Type": "={{ $json['Apply Type'] }}"
+          },
+          "matchingColumns": [
+            "Title"
+          ],
+          "schema": [
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Experience",
+              "displayName": "Experience",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Salary",
+              "displayName": "Salary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company URL",
+              "displayName": "Company URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Apply URL",
+              "displayName": "Apply URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Posted Date",
+              "displayName": "Posted Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Contract Type",
+              "displayName": "Contract Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Work Type",
+              "displayName": "Work Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Apply Type",
+              "displayName": "Apply Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Experience Level",
+              "displayName": "Experience Level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        2512,
+        -192
+      ],
+      "id": "6a232e57-15de-4b17-8963-a6e10761a24e",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "googleSheetsOAuth2Api",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Code9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Code7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Code10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code4": {
+      "main": [
+        [
+          {
+            "node": "Code11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code6": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code9": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code10": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code11": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code7": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Code12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Code13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Code14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Code15",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code8": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code12": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code13": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Code14": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Code15": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Replace Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Me": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "85096b71-f87f-4dd0-9e48-8720623b2017",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "04e14e108a043d008f8426bbb00eca6dcf11058e4e21a30d24cd59831f9e5c6f"
+  },
+  "id": "ZvpIYrgY8HhMcqkY",
+  "tags": []
+}
